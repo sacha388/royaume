@@ -132,9 +132,7 @@ export async function hydrateConstellationStars(): Promise<ConstellationStar[]> 
     .select("id, created_by_profile, body, size, x, y, created_at")
     .order("created_at", { ascending: true });
 
-  if (error) {
-    console.error("[royaume:supabase] constellation_stars select failed", error);
-  }
+  void error;
 
   if (data && (data.length > 0 || readConstellationStars().length === 0)) {
     writeConstellationStars(data.map((row) => fromRow(row)));
@@ -180,9 +178,7 @@ export async function deleteConstellationStar(id: string): Promise<void> {
     .delete()
     .eq("id", id);
 
-  if (error) {
-    console.error("[royaume:supabase] constellation_stars delete failed", error);
-  }
+  void error;
 }
 
 export async function addConstellationStar({
@@ -232,7 +228,7 @@ export async function addConstellationStar({
     .single();
 
   if (error || !data) {
-    console.error("[royaume:supabase] constellation_stars insert failed", error);
+    void error;
     return optimistic;
   }
 

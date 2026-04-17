@@ -146,15 +146,8 @@ export async function hydrateCoupleMessages(): Promise<CoupleMessage[]> {
       .select("profile, message_id, acknowledged_at"),
   ]);
 
-  if (messagesError) {
-    console.error("[royaume:supabase] couple_messages select failed", messagesError);
-  }
-  if (acknowledgementsError) {
-    console.error(
-      "[royaume:supabase] heart_acknowledgements select failed",
-      acknowledgementsError,
-    );
-  }
+  void messagesError;
+  void acknowledgementsError;
 
   if (messages && (messages.length > 0 || readAll().length === 0)) {
     const next = messages
@@ -248,7 +241,7 @@ export async function appendCoupleMessage(
     .single();
 
   if (error || !data) {
-    console.error("[royaume:supabase] couple_messages insert failed", error);
+    void error;
     return;
   }
 
@@ -351,9 +344,7 @@ export async function acknowledgeHeartCelebration(
     .select("profile, message_id, acknowledged_at")
     .single();
 
-  if (error) {
-    console.error("[royaume:supabase] heart_acknowledgements upsert failed", error);
-  }
+  void error;
 
   if (data) {
     cacheHeartAck(data);

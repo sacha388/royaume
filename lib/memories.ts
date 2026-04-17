@@ -101,9 +101,7 @@ export async function hydrateMemories(): Promise<MemoryItem[]> {
     .select("id, profile, title, image_data_url, created_at")
     .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("[royaume:supabase] memories select failed", error);
-  }
+  void error;
 
   if (data && (data.length > 0 || readMemories().length === 0)) {
     const next = data
@@ -137,6 +135,21 @@ export function subscribeMemories(): () => void {
     stopPolling();
     void supabase.removeChannel(channel);
   };
+}
+
+export async function resetMemories(): Promise<void> {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  writeMemories([]);
+
+  const { error } = await getSharedDataClient()
+    .from("memories")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000");
+
+  void error;
 }
 
 export async function addMemory({
@@ -181,7 +194,7 @@ export async function addMemory({
     .single();
 
   if (error || !data) {
-    console.error("[royaume:supabase] memories insert failed", error);
+    void error;
     return optimistic;
   }
 

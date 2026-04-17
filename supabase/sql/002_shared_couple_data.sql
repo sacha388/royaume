@@ -38,7 +38,7 @@ grant usage on schema public to anon, authenticated;
 grant select, insert on public.couple_messages to anon, authenticated;
 grant select, insert, update on public.heart_acknowledgements to anon, authenticated;
 grant select, insert, delete on public.constellation_stars to anon, authenticated;
-grant select, insert on public.memories to anon, authenticated;
+grant select, insert, delete on public.memories to anon, authenticated;
 
 drop policy if exists "Anon can read couple messages" on public.couple_messages;
 create policy "Anon can read couple messages"
@@ -118,6 +118,13 @@ create policy "Anon can insert memories"
     and char_length(title) > 0
     and char_length(title) <= 15
   );
+
+drop policy if exists "Anon can delete memories" on public.memories;
+create policy "Anon can delete memories"
+  on public.memories
+  for delete
+  to anon
+  using (true);
 
 do $$
 begin

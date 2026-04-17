@@ -13,9 +13,7 @@ export function startSharedSyncPolling(
     if (stopped) {
       return;
     }
-    void sync().catch((error: unknown) => {
-      console.error("[royaume:supabase-sync]", error);
-    });
+    void sync().catch(() => {});
   };
 
   const onFocus = () => run();

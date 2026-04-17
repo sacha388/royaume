@@ -11,6 +11,7 @@ import {
   MEMORIES_UPDATED_EVENT,
   hydrateMemories,
   readMemories,
+  resetMemories,
   subscribeMemories,
   type MemoryItem,
 } from "@/lib/memories";
@@ -82,6 +83,7 @@ export function MemoriesExperience() {
   const [title, setTitle] = useState("");
   const [imageDataUrl, setImageDataUrl] = useState("");
   const [isReadingImage, setIsReadingImage] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     const syncMemories = () => setMemories(readMemories());
@@ -145,6 +147,16 @@ export function MemoriesExperience() {
     closeComposer();
   }
 
+  async function handleResetMemories() {
+    setIsResetting(true);
+    try {
+      await resetMemories();
+      setMemories([]);
+    } finally {
+      setIsResetting(false);
+    }
+  }
+
   return (
     <MobileShell className="gap-6 pb-6">
       <header className="flex items-start justify-between gap-4">
@@ -199,6 +211,23 @@ export function MemoriesExperience() {
           </div>
         )}
       </section>
+
+      {memories.length > 0 ? (
+        <div className="flex justify-center pb-3">
+          <button
+            className={cn(
+              "min-h-11 rounded-full border border-[#c44f5d]/20 bg-white px-5",
+              "text-sm font-semibold text-[#c44f5d] transition-colors active:bg-[#c44f5d]/10",
+              "disabled:opacity-45",
+            )}
+            disabled={isResetting}
+            onClick={handleResetMemories}
+            type="button"
+          >
+            {isResetting ? "Réinitialisation..." : "Réinitialisé souvenirs"}
+          </button>
+        </div>
+      ) : null}
 
       {composeOpen ? (
         <div
