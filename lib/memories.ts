@@ -103,7 +103,7 @@ export async function hydrateMemories(): Promise<MemoryItem[]> {
 
   void error;
 
-  if (data && (data.length > 0 || readMemories().length === 0)) {
+  if (data) {
     const next = data
       .map((row) => fromRow(row))
       .filter((memory): memory is MemoryItem => Boolean(memory));
@@ -150,6 +150,7 @@ export async function resetMemories(): Promise<void> {
     .neq("id", "00000000-0000-0000-0000-000000000000");
 
   void error;
+  await hydrateMemories();
 }
 
 export async function addMemory({

@@ -149,18 +149,14 @@ export async function hydrateCoupleMessages(): Promise<CoupleMessage[]> {
   void messagesError;
   void acknowledgementsError;
 
-  if (messages && (messages.length > 0 || readAll().length === 0)) {
+  if (messages) {
     const next = messages
       .map((row) => fromRow(row))
       .filter((message): message is CoupleMessage => Boolean(message));
     writeAll(next);
   }
 
-  if (
-    acknowledgements &&
-    (acknowledgements.length > 0 ||
-      Object.keys(readCelebrationAckMap()).length === 0)
-  ) {
+  if (acknowledgements) {
     const nextMap: CelebrationAckMap = {};
     for (const item of acknowledgements) {
       if (isProfileId(item.profile)) {

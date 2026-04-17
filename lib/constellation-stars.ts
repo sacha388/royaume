@@ -134,7 +134,7 @@ export async function hydrateConstellationStars(): Promise<ConstellationStar[]> 
 
   void error;
 
-  if (data && (data.length > 0 || readConstellationStars().length === 0)) {
+  if (data) {
     writeConstellationStars(data.map((row) => fromRow(row)));
   }
 
