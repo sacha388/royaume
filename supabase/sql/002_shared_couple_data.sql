@@ -44,35 +44,35 @@ drop policy if exists "Anon can read couple messages" on public.couple_messages;
 create policy "Anon can read couple messages"
   on public.couple_messages
   for select
-  to anon
+  to anon, authenticated
   using (true);
 
 drop policy if exists "Anon can insert couple messages" on public.couple_messages;
 create policy "Anon can insert couple messages"
   on public.couple_messages
   for insert
-  to anon
+  to anon, authenticated
   with check (from_profile in ('reane', 'sacha') and char_length(body) > 0);
 
 drop policy if exists "Anon can read heart acknowledgements" on public.heart_acknowledgements;
 create policy "Anon can read heart acknowledgements"
   on public.heart_acknowledgements
   for select
-  to anon
+  to anon, authenticated
   using (true);
 
 drop policy if exists "Anon can upsert heart acknowledgements" on public.heart_acknowledgements;
 create policy "Anon can upsert heart acknowledgements"
   on public.heart_acknowledgements
   for insert
-  to anon
+  to anon, authenticated
   with check (profile in ('reane', 'sacha'));
 
 drop policy if exists "Anon can update heart acknowledgements" on public.heart_acknowledgements;
 create policy "Anon can update heart acknowledgements"
   on public.heart_acknowledgements
   for update
-  to anon
+  to anon, authenticated
   using (profile in ('reane', 'sacha'))
   with check (profile in ('reane', 'sacha'));
 
@@ -80,14 +80,14 @@ drop policy if exists "Anon can read constellation stars" on public.constellatio
 create policy "Anon can read constellation stars"
   on public.constellation_stars
   for select
-  to anon
+  to anon, authenticated
   using (true);
 
 drop policy if exists "Anon can insert constellation stars" on public.constellation_stars;
 create policy "Anon can insert constellation stars"
   on public.constellation_stars
   for insert
-  to anon
+  to anon, authenticated
   with check (
     (created_by_profile is null or created_by_profile in ('reane', 'sacha'))
     and char_length(body) > 0
@@ -98,21 +98,21 @@ drop policy if exists "Anon can delete constellation stars" on public.constellat
 create policy "Anon can delete constellation stars"
   on public.constellation_stars
   for delete
-  to anon
+  to anon, authenticated
   using (true);
 
 drop policy if exists "Anon can read memories" on public.memories;
 create policy "Anon can read memories"
   on public.memories
   for select
-  to anon
+  to anon, authenticated
   using (true);
 
 drop policy if exists "Anon can insert memories" on public.memories;
 create policy "Anon can insert memories"
   on public.memories
   for insert
-  to anon
+  to anon, authenticated
   with check (
     profile in ('reane', 'sacha')
     and char_length(title) > 0
@@ -123,7 +123,7 @@ drop policy if exists "Anon can delete memories" on public.memories;
 create policy "Anon can delete memories"
   on public.memories
   for delete
-  to anon
+  to anon, authenticated
   using (true);
 
 do $$
