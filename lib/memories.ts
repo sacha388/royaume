@@ -1,7 +1,11 @@
+import { getSharedDataClient } from "@/lib/shared-data-client";
 import { isProfileId, type ProfileId } from "@/types/profile";
+import type { Database } from "@/types/supabase";
 
 export const MEMORIES_STORAGE_KEY = "royaume:memories";
 export const MEMORIES_UPDATED_EVENT = "royaume:memories-updated";
+
+type MemoryRow = Database["public"]["Tables"]["memories"]["Row"];
 
 export type MemoryItem = {
   id: string;
@@ -18,6 +22,25 @@ function notifyMemoriesUpdated(): void {
     return;
   }
   window.dispatchEvent(new Event(MEMORIES_UPDATED_EVENT));
+}
+
+function toTimestamp(value: string): number {
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? Date.now() : parsed;
+}
+
+function fromRow(row: MemoryRow): MemoryItem | null {
+  if (!isProfileId(row.profile)) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    createdAt: toTimestamp(row.created_at),
+    imageDataUrl: row.image_data_url,
+    profile: row.profile,
+    title: row.title.trim().slice(0, 15),
+  };
 }
 
 export function readMemories(): MemoryItem[] {
@@ -60,16 +83,60 @@ export function readMemories(): MemoryItem[] {
   }
 }
 
-function writeMemories(memories: MemoryItem[]): void {
+function writeMemories(memories: MemoryItem[], notify = true): void {
   window.localStorage.setItem(MEMORIES_STORAGE_KEY, JSON.stringify(memories));
-  notifyMemoriesUpdated();
+  if (notify) {
+    notifyMemoriesUpdated();
+  }
 }
 
-export function addMemory({
+export async function hydrateMemories(): Promise<MemoryItem[]> {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  const { data } = await getSharedDataClient()
+    .from("memories")
+    .select("id, profile, title, image_data_url, created_at")
+    .order("created_at", { ascending: false });
+
+  if (data && (data.length > 0 || readMemories().length === 0)) {
+    const next = data
+      .map((row) => fromRow(row))
+      .filter((memory): memory is MemoryItem => Boolean(memory));
+    writeMemories(next);
+  }
+
+  return readMemories();
+}
+
+export function subscribeMemories(): () => void {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  const supabase = getSharedDataClient();
+  const channel = supabase
+    .channel("royaume:memories")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "memories" },
+      () => {
+        void hydrateMemories();
+      },
+    )
+    .subscribe();
+
+  return () => {
+    void supabase.removeChannel(channel);
+  };
+}
+
+export async function addMemory({
   imageDataUrl,
   profile,
   title,
-}: NewMemoryItem): MemoryItem | null {
+}: NewMemoryItem): Promise<MemoryItem | null> {
   if (typeof window === "undefined") {
     return null;
   }
@@ -80,19 +147,43 @@ export function addMemory({
     return null;
   }
 
-  const next: MemoryItem = {
+  const createdAt = Date.now();
+  const optimistic: MemoryItem = {
     id:
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    createdAt: Date.now(),
+        : `${createdAt}-${Math.random().toString(36).slice(2)}`,
+    createdAt,
     imageDataUrl: trimmedImage,
     profile,
     title: trimmedTitle,
   };
 
-  const memories = readMemories();
-  memories.unshift(next);
+  const memories = readMemories().filter((memory) => memory.id !== optimistic.id);
+  memories.unshift(optimistic);
   writeMemories(memories);
-  return next;
+
+  const { data, error } = await getSharedDataClient()
+    .from("memories")
+    .insert({
+      image_data_url: trimmedImage,
+      profile,
+      title: trimmedTitle,
+    })
+    .select("id, profile, title, image_data_url, created_at")
+    .single();
+
+  if (error || !data) {
+    return optimistic;
+  }
+
+  const saved = fromRow(data);
+  if (!saved) {
+    return optimistic;
+  }
+
+  const next = readMemories().filter((memory) => memory.id !== optimistic.id);
+  next.unshift(saved);
+  writeMemories(next);
+  return saved;
 }

@@ -9,7 +9,9 @@ import { profileLabel } from "@/types/profile";
 import {
   addMemory,
   MEMORIES_UPDATED_EVENT,
+  hydrateMemories,
   readMemories,
+  subscribeMemories,
   type MemoryItem,
 } from "@/lib/memories";
 import { cn } from "@/lib/utils";
@@ -85,10 +87,14 @@ export function MemoriesExperience() {
     const syncMemories = () => setMemories(readMemories());
 
     syncMemories();
+    void hydrateMemories();
+    const unsubscribe = subscribeMemories();
+
     window.addEventListener("storage", syncMemories);
     window.addEventListener(MEMORIES_UPDATED_EVENT, syncMemories as EventListener);
 
     return () => {
+      unsubscribe();
       window.removeEventListener("storage", syncMemories);
       window.removeEventListener(
         MEMORIES_UPDATED_EVENT,
@@ -120,12 +126,12 @@ export function MemoriesExperience() {
     }
   }
 
-  function handleAddMemory() {
+  async function handleAddMemory() {
     if (!profile) {
       return;
     }
 
-    const added = addMemory({
+    const added = await addMemory({
       imageDataUrl,
       profile,
       title,

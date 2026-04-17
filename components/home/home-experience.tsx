@@ -20,14 +20,19 @@ import { MobileShell } from "@/components/layout/mobile-shell";
 import {
   acknowledgeHeartCelebration,
   appendCoupleMessage,
+  COUPLE_MESSAGES_UPDATED_EVENT,
   getLastReceivedForViewer,
   getPendingHeartCelebration,
   getPendingOutboundHeart,
+  hydrateCoupleMessages,
+  subscribeCoupleMessages,
 } from "@/lib/couple-messages";
 import { lemonCake } from "@/lib/fonts";
 import {
   MEMORIES_UPDATED_EVENT,
+  hydrateMemories,
   readMemories,
+  subscribeMemories,
   type MemoryItem,
 } from "@/lib/memories";
 import { profilePhotoSrc } from "@/lib/profile-photos";
@@ -126,19 +131,27 @@ export function HomeExperience() {
 
   useEffect(() => {
     const bump = () => setInboxTick((n) => n + 1);
-    window.addEventListener("royaume:inbox-updated", bump);
+    void hydrateCoupleMessages();
+    const unsubscribe = subscribeCoupleMessages();
+
+    window.addEventListener(COUPLE_MESSAGES_UPDATED_EVENT, bump);
     window.addEventListener("storage", bump);
     return () => {
-      window.removeEventListener("royaume:inbox-updated", bump);
+      unsubscribe();
+      window.removeEventListener(COUPLE_MESSAGES_UPDATED_EVENT, bump);
       window.removeEventListener("storage", bump);
     };
   }, []);
 
   useEffect(() => {
     const bump = () => setMemoriesTick((n) => n + 1);
+    void hydrateMemories();
+    const unsubscribe = subscribeMemories();
+
     window.addEventListener(MEMORIES_UPDATED_EVENT, bump);
     window.addEventListener("storage", bump);
     return () => {
+      unsubscribe();
       window.removeEventListener(MEMORIES_UPDATED_EVENT, bump);
       window.removeEventListener("storage", bump);
     };
@@ -194,7 +207,7 @@ export function HomeExperience() {
 
   function handleCelebrationContinue() {
     if (celebration && profile) {
-      acknowledgeHeartCelebration(profile, celebration.id);
+      void acknowledgeHeartCelebration(profile, celebration.id);
       setDismissedCelebrationId(celebration.id);
     }
   }
@@ -205,6 +218,7 @@ export function HomeExperience() {
     if (!profile) {
       return;
     }
+    await hydrateCoupleMessages();
     if (getPendingOutboundHeart(profile) !== null) {
       setHarassModalOpen(true);
       return;
@@ -212,7 +226,7 @@ export function HomeExperience() {
     setSendToast(null);
     setIsSending(true);
     await new Promise((r) => setTimeout(r, 450));
-    appendCoupleMessage(profile, heartMessage);
+    await appendCoupleMessage(profile, heartMessage);
     setIsSending(false);
     setSendToast(
       profile === "reane"

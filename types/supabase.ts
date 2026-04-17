@@ -35,6 +35,107 @@ export type Database = {
           },
         ];
       };
+      couple_messages: {
+        Row: {
+          body: string;
+          created_at: string;
+          from_profile: string;
+          id: string;
+        };
+        Insert: {
+          body: string;
+          created_at?: string;
+          from_profile: string;
+          id?: string;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          from_profile?: string;
+          id?: string;
+        };
+        Relationships: [];
+      };
+      heart_acknowledgements: {
+        Row: {
+          acknowledged_at: string;
+          message_id: string;
+          profile: string;
+        };
+        Insert: {
+          acknowledged_at?: string;
+          message_id: string;
+          profile: string;
+        };
+        Update: {
+          acknowledged_at?: string;
+          message_id?: string;
+          profile?: string;
+        };
+        Relationships: [
+          {
+            columns: ["message_id"];
+            foreignKeyName: "heart_acknowledgements_message_id_fkey";
+            isOneToOne: false;
+            referencedColumns: ["id"];
+            referencedRelation: "couple_messages";
+          },
+        ];
+      };
+      constellation_stars: {
+        Row: {
+          body: string;
+          created_at: string;
+          created_by_profile: string | null;
+          id: string;
+          size: number;
+          x: number;
+          y: number;
+        };
+        Insert: {
+          body: string;
+          created_at?: string;
+          created_by_profile?: string | null;
+          id?: string;
+          size: number;
+          x: number;
+          y: number;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          created_by_profile?: string | null;
+          id?: string;
+          size?: number;
+          x?: number;
+          y?: number;
+        };
+        Relationships: [];
+      };
+      memories: {
+        Row: {
+          created_at: string;
+          id: string;
+          image_data_url: string;
+          profile: string;
+          title: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          image_data_url: string;
+          profile: string;
+          title: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          image_data_url?: string;
+          profile?: string;
+          title?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

@@ -17,11 +17,14 @@ import {
   CONSTELLATION_UPDATED_EVENT,
   DEFAULT_CONSTELLATION_STAR_SIZE,
   deleteConstellationStar,
+  hydrateConstellationStars,
   MAX_CONSTELLATION_STAR_SIZE,
   MIN_CONSTELLATION_STAR_SIZE,
   readConstellationStars,
+  subscribeConstellationStars,
   type ConstellationStar,
 } from "@/lib/constellation-stars";
+import { useProfile } from "@/components/auth/profile-context";
 import { cn } from "@/lib/utils";
 
 type DraftPoint = {
@@ -94,6 +97,7 @@ function starSize(index: number): number {
 }
 
 export function ConstellationExperience() {
+  const { profile } = useProfile();
   const skyRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
   const dragPointerIdRef = useRef<number | null>(null);
@@ -112,6 +116,9 @@ export function ConstellationExperience() {
     const syncStars = () => setStars(readConstellationStars());
 
     syncStars();
+    void hydrateConstellationStars();
+    const unsubscribe = subscribeConstellationStars();
+
     window.addEventListener("storage", syncStars);
     window.addEventListener(
       CONSTELLATION_UPDATED_EVENT,
@@ -119,6 +126,7 @@ export function ConstellationExperience() {
     );
 
     return () => {
+      unsubscribe();
       window.removeEventListener("storage", syncStars);
       window.removeEventListener(
         CONSTELLATION_UPDATED_EVENT,
@@ -242,12 +250,13 @@ export function ConstellationExperience() {
     openComposerAt(0.5, 0.28);
   }
 
-  function handleAddStar() {
+  async function handleAddStar() {
     if (!draftPoint) {
       return;
     }
 
-    const added = addConstellationStar({
+    const added = await addConstellationStar({
+      createdBy: profile,
       size: draftSize,
       text: draftText,
       x: draftPoint.x,
@@ -441,7 +450,7 @@ export function ConstellationExperience() {
                   className="shrink-0 text-sm font-semibold text-[#8fb7ff] transition-opacity active:opacity-70"
                   onClick={(event) => {
                     event.stopPropagation();
-                    deleteConstellationStar(selectedStar.id);
+                    void deleteConstellationStar(selectedStar.id);
                     setStars(readConstellationStars());
                     setSelectedStar(null);
                   }}
