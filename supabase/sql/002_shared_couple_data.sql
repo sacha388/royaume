@@ -34,6 +34,12 @@ alter table public.heart_acknowledgements enable row level security;
 alter table public.constellation_stars enable row level security;
 alter table public.memories enable row level security;
 
+grant usage on schema public to anon, authenticated;
+grant select, insert on public.couple_messages to anon, authenticated;
+grant select, insert, update on public.heart_acknowledgements to anon, authenticated;
+grant select, insert, delete on public.constellation_stars to anon, authenticated;
+grant select, insert on public.memories to anon, authenticated;
+
 drop policy if exists "Anon can read couple messages" on public.couple_messages;
 create policy "Anon can read couple messages"
   on public.couple_messages

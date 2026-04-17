@@ -1,4 +1,5 @@
 import { getSharedDataClient } from "@/lib/shared-data-client";
+import { startSharedSyncPolling } from "@/lib/shared-sync";
 import { isProfileId, partnerProfileId, type ProfileId } from "@/types/profile";
 import type { Database } from "@/types/supabase";
 
@@ -132,7 +133,10 @@ export async function hydrateCoupleMessages(): Promise<CoupleMessage[]> {
   }
 
   const supabase = getSharedDataClient();
-  const [{ data: messages }, { data: acknowledgements }] = await Promise.all([
+  const [
+    { data: messages, error: messagesError },
+    { data: acknowledgements, error: acknowledgementsError },
+  ] = await Promise.all([
     supabase
       .from("couple_messages")
       .select("id, from_profile, body, created_at")
@@ -141,6 +145,16 @@ export async function hydrateCoupleMessages(): Promise<CoupleMessage[]> {
       .from("heart_acknowledgements")
       .select("profile, message_id, acknowledged_at"),
   ]);
+
+  if (messagesError) {
+    console.error("[royaume:supabase] couple_messages select failed", messagesError);
+  }
+  if (acknowledgementsError) {
+    console.error(
+      "[royaume:supabase] heart_acknowledgements select failed",
+      acknowledgementsError,
+    );
+  }
 
   if (messages && (messages.length > 0 || readAll().length === 0)) {
     const next = messages
@@ -172,6 +186,7 @@ export function subscribeCoupleMessages(): () => void {
   }
 
   const supabase = getSharedDataClient();
+  const stopPolling = startSharedSyncPolling(hydrateCoupleMessages);
   const channel = supabase
     .channel("royaume:couple-messages")
     .on(
@@ -191,6 +206,7 @@ export function subscribeCoupleMessages(): () => void {
     .subscribe();
 
   return () => {
+    stopPolling();
     void supabase.removeChannel(channel);
   };
 }
@@ -232,6 +248,7 @@ export async function appendCoupleMessage(
     .single();
 
   if (error || !data) {
+    console.error("[royaume:supabase] couple_messages insert failed", error);
     return;
   }
 
@@ -324,7 +341,7 @@ export async function acknowledgeHeartCelebration(
   map[viewer] = messageId;
   writeCelebrationAckMap(map);
 
-  const { data } = await getSharedDataClient()
+  const { data, error } = await getSharedDataClient()
     .from("heart_acknowledgements")
     .upsert({
       acknowledged_at: new Date().toISOString(),
@@ -333,6 +350,10 @@ export async function acknowledgeHeartCelebration(
     })
     .select("profile, message_id, acknowledged_at")
     .single();
+
+  if (error) {
+    console.error("[royaume:supabase] heart_acknowledgements upsert failed", error);
+  }
 
   if (data) {
     cacheHeartAck(data);

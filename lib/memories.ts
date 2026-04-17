@@ -1,4 +1,5 @@
 import { getSharedDataClient } from "@/lib/shared-data-client";
+import { startSharedSyncPolling } from "@/lib/shared-sync";
 import { isProfileId, type ProfileId } from "@/types/profile";
 import type { Database } from "@/types/supabase";
 
@@ -95,10 +96,14 @@ export async function hydrateMemories(): Promise<MemoryItem[]> {
     return [];
   }
 
-  const { data } = await getSharedDataClient()
+  const { data, error } = await getSharedDataClient()
     .from("memories")
     .select("id, profile, title, image_data_url, created_at")
     .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[royaume:supabase] memories select failed", error);
+  }
 
   if (data && (data.length > 0 || readMemories().length === 0)) {
     const next = data
@@ -116,6 +121,7 @@ export function subscribeMemories(): () => void {
   }
 
   const supabase = getSharedDataClient();
+  const stopPolling = startSharedSyncPolling(hydrateMemories);
   const channel = supabase
     .channel("royaume:memories")
     .on(
@@ -128,6 +134,7 @@ export function subscribeMemories(): () => void {
     .subscribe();
 
   return () => {
+    stopPolling();
     void supabase.removeChannel(channel);
   };
 }
@@ -174,6 +181,7 @@ export async function addMemory({
     .single();
 
   if (error || !data) {
+    console.error("[royaume:supabase] memories insert failed", error);
     return optimistic;
   }
 

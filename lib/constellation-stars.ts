@@ -1,4 +1,5 @@
 import { getSharedDataClient } from "@/lib/shared-data-client";
+import { startSharedSyncPolling } from "@/lib/shared-sync";
 import { isProfileId, type ProfileId } from "@/types/profile";
 import type { Database } from "@/types/supabase";
 
@@ -126,10 +127,14 @@ export async function hydrateConstellationStars(): Promise<ConstellationStar[]> 
     return [];
   }
 
-  const { data } = await getSharedDataClient()
+  const { data, error } = await getSharedDataClient()
     .from("constellation_stars")
     .select("id, created_by_profile, body, size, x, y, created_at")
     .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("[royaume:supabase] constellation_stars select failed", error);
+  }
 
   if (data && (data.length > 0 || readConstellationStars().length === 0)) {
     writeConstellationStars(data.map((row) => fromRow(row)));
@@ -144,6 +149,7 @@ export function subscribeConstellationStars(): () => void {
   }
 
   const supabase = getSharedDataClient();
+  const stopPolling = startSharedSyncPolling(hydrateConstellationStars);
   const channel = supabase
     .channel("royaume:constellation-stars")
     .on(
@@ -156,6 +162,7 @@ export function subscribeConstellationStars(): () => void {
     .subscribe();
 
   return () => {
+    stopPolling();
     void supabase.removeChannel(channel);
   };
 }
@@ -168,7 +175,14 @@ export async function deleteConstellationStar(id: string): Promise<void> {
   const next = readConstellationStars().filter((star) => star.id !== id);
   writeConstellationStars(next);
 
-  await getSharedDataClient().from("constellation_stars").delete().eq("id", id);
+  const { error } = await getSharedDataClient()
+    .from("constellation_stars")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("[royaume:supabase] constellation_stars delete failed", error);
+  }
 }
 
 export async function addConstellationStar({
@@ -218,6 +232,7 @@ export async function addConstellationStar({
     .single();
 
   if (error || !data) {
+    console.error("[royaume:supabase] constellation_stars insert failed", error);
     return optimistic;
   }
 
