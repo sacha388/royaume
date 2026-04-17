@@ -1,0 +1,20 @@
+{
+  "name": "Royaume",
+  "short_name": "Royaume",
+  "description": "Un espace privé pour deux.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#f3e8e2",
+  "theme_color": "#f3e8e2",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

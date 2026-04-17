@@ -1,26 +1,123 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --app-bg: #f3e8e2;
+  --app-surface: #ffffff;
+  --app-ink: #161616;
+  --app-muted: #71717a;
+  --app-accent: #c44f5d;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--app-bg);
+  --color-foreground: var(--app-ink);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Helvetica Neue", Arial, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--app-bg);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+  background: var(--app-bg);
+  color: var(--app-ink);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a {
+  touch-action: manipulation;
+}
+
+button:not(:disabled),
+a[href] {
+  cursor: pointer;
+  transition-duration: 140ms;
+  transition-property: background-color, border-color, box-shadow, color, opacity,
+    scale, transform;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+button:not(:disabled):active,
+a[href]:active {
+  scale: 0.975;
+}
+
+label:has(input[type="file"]) {
+  cursor: pointer;
+  touch-action: manipulation;
+  transition-duration: 140ms;
+  transition-property: background-color, border-color, box-shadow, color, opacity,
+    scale, transform;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+label:has(input[type="file"]):active {
+  scale: 0.975;
+}
+
+button {
+  appearance: none;
+}
+
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+a {
+  text-decoration: none;
+}
+
+.safe-shell {
+  padding-top: max(20px, env(safe-area-inset-top));
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+
+/* Maintien long sur le cercle : annuler touch-action global des boutons */
+button.entry-hold-see {
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:not(:disabled),
+  a[href] {
+    transition-duration: 1ms;
+  }
+
+  button:not(:disabled):active,
+  a[href]:active {
+    scale: 1;
+  }
+
+  label:has(input[type="file"]) {
+    transition-duration: 1ms;
+  }
+
+  label:has(input[type="file"]):active {
+    scale: 1;
+  }
 }

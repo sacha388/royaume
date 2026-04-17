@@ -1,36 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Royaume
 
-## Getting Started
+Scaffold initial d'une PWA mobile-only privée, pensée pour iPhone et construite avec Next.js App Router, TypeScript, Tailwind CSS et Supabase Auth.
 
-First, run the development server:
+## Stack
+
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+- Supabase Auth par email magic link
+- PWA installable avec manifest, apple touch icon et meta iOS standalone
+
+## Structure
+
+```txt
+app/
+  (protected)/
+    constellation/
+    home/
+    memories/
+    settings/
+    us/
+  auth/
+    callback/
+  intro/
+components/
+  auth/
+  home/
+  layout/
+  ui/
+lib/
+  supabase/
+public/
+  animations/
+  icons/
+supabase/
+  sql/
+types/
+```
+
+## Setup local
+
+1. Installer les dependances :
+
+```bash
+npm install
+```
+
+2. Créer le fichier d'environnement local :
+
+```bash
+cp .env.example .env.local
+```
+
+3. Renseigner les clés Supabase dans `.env.local` :
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+4. Dans Supabase, activer l'authentification email. Pour le magic link local, ajouter `http://localhost:3000/auth/callback` dans les redirect URLs autorisées. Si Next utilise un autre port, ajouter aussi l'URL affichée dans le terminal.
+
+5. Créer la table des cœurs dans Supabase en exécutant le SQL de `supabase/sql/001_hearts.sql` dans le SQL Editor.
+
+6. Mettre ton animation Lottie dans :
+
+```txt
+public/animations/incoming-heart.json
+```
+
+7. Lancer l'app :
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Puis ouvrir `http://localhost:3000` dans un navigateur mobile ou en mode responsive iPhone.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Routes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Routes publiques :
 
-## Learn More
+- `/`
+- `/intro`
+- `/auth`
 
-To learn more about Next.js, take a look at the following resources:
+Routes protégées :
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `/home`
+- `/settings`
+- `/memories`
+- `/us`
+- `/constellation`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Supabase utilise aussi le route handler `/auth/callback` pour échanger le code du magic link contre une session.
 
-## Deploy on Vercel
+## Cœurs
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+La Home permet d'envoyer un cœur aux utilisateurs connectés. Un envoi crée une ligne dans `public.hearts`, et les autres clients connectés reçoivent l'événement via Supabase Realtime.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Le JSON d'animation attendu est :
+
+```txt
+public/animations/incoming-heart.json
+```
+
+Si ce fichier n'existe pas encore, l'app affiche un cœur simple en fallback.
+
+## Pret
+
+- Architecture App Router propre
+- Layout mobile max 430px avec safe area iPhone
+- Manifest PWA
+- Apple touch icon générée par Next
+- Meta iOS standalone
+- Auth Supabase email magic link
+- Envoi de cœur via Supabase
+- Animation d'arrivée de cœur via Lottie JSON
+- Ecoute realtime des nouveaux cœurs
+- Persistance et refresh de session via `proxy.ts`
+- Redirection hors de `/auth` si l'utilisateur est connecté
+- Protection serveur des routes privées via le layout `(protected)`
+
+## Placeholder
+
+- Experiences `/memories`, `/us`, `/constellation`
+- Paramètres métier dans `/settings`
+- Notifications système, chat, données couple
