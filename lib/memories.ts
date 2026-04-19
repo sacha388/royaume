@@ -180,9 +180,10 @@ export async function addMemory({
     title: trimmedTitle,
   };
 
-  const memories = readMemories().filter((memory) => memory.id !== optimistic.id);
-  memories.unshift(optimistic);
-  writeMemories(memories);
+  const previous = readMemories();
+  const optimisticMemories = previous.filter((memory) => memory.id !== optimistic.id);
+  optimisticMemories.unshift(optimistic);
+  writeMemories(optimisticMemories);
 
   const { data, error } = await getSharedDataClient()
     .from("memories")
@@ -196,12 +197,14 @@ export async function addMemory({
 
   if (error || !data) {
     void error;
-    return optimistic;
+    writeMemories(previous);
+    return null;
   }
 
   const saved = fromRow(data);
   if (!saved) {
-    return optimistic;
+    writeMemories(previous);
+    return null;
   }
 
   const next = readMemories().filter((memory) => memory.id !== optimistic.id);

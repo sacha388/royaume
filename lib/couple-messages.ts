@@ -225,6 +225,7 @@ export async function appendCoupleMessage(
     createdAt,
   };
 
+  const previous = readAll();
   appendLocal(optimistic);
 
   const { data, error } = await getSharedDataClient()
@@ -238,6 +239,7 @@ export async function appendCoupleMessage(
 
   if (error || !data) {
     void error;
+    writeAll(previous);
     return;
   }
 

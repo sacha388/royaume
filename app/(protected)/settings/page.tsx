@@ -3,6 +3,7 @@ import { MobileShell } from "@/components/layout/mobile-shell";
 import { ScreenHeader } from "@/components/layout/screen-header";
 import { ProfileSessionCard } from "@/components/settings/profile-session-card";
 import { RestartFlowButton } from "@/components/settings/restart-flow-button";
+import { SyncStatusCard } from "@/components/settings/sync-status-card";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 
@@ -12,6 +13,8 @@ export default function SettingsPage() {
       <ScreenHeader backHref="/home" title="Réglages" />
 
       <ProfileSessionCard />
+
+      <SyncStatusCard />
 
       <Card className="rounded-[18px]">
         <div className="grid gap-3">

@@ -211,9 +211,10 @@ export async function addConstellationStar({
     y: clamp01(y),
   };
 
-  const stars = readConstellationStars().filter((star) => star.id !== optimistic.id);
-  stars.push(optimistic);
-  writeConstellationStars(stars);
+  const previous = readConstellationStars();
+  const optimisticStars = previous.filter((star) => star.id !== optimistic.id);
+  optimisticStars.push(optimistic);
+  writeConstellationStars(optimisticStars);
 
   const { data, error } = await getSharedDataClient()
     .from("constellation_stars")
@@ -229,7 +230,8 @@ export async function addConstellationStar({
 
   if (error || !data) {
     void error;
-    return optimistic;
+    writeConstellationStars(previous);
+    return null;
   }
 
   const saved = fromRow(data);
