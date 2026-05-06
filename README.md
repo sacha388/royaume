@@ -59,9 +59,11 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
+   Optionnel — notifications Web Push (Safari iOS 16.4+, app sur l’écran d’accueil) : générer des clés VAPID (`npx web-push generate-vapid-keys`), puis renseigner `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, et la même valeur aléatoire pour `PUSH_GATE_KEY` et `NEXT_PUBLIC_PUSH_GATE_KEY` (voir `.env.example`).
+
 4. Dans Supabase, activer l'authentification email. Pour le magic link local, ajouter `http://localhost:3000/auth/callback` dans les redirect URLs autorisées. Si Next utilise un autre port, ajouter aussi l'URL affichée dans le terminal.
 
-5. Créer la table des cœurs dans Supabase en exécutant le SQL de `supabase/sql/001_hearts.sql` dans le SQL Editor.
+5. Appliquer les migrations SQL partagées couple dans le SQL Editor (`supabase/sql/002_shared_couple_data.sql` puis `003_web_push.sql` pour les abonnements push).
 
 6. Mettre ton animation Lottie dans :
 
@@ -107,6 +109,12 @@ public/animations/incoming-heart.json
 
 Si ce fichier n'existe pas encore, l'app affiche un cœur simple en fallback.
 
+## Notifications Web Push (Safari iOS / PWA)
+
+- L’utilisateur active les notifications depuis **Réglages** ; le service worker est [`public/sw.js`](public/sw.js). Sur iPhone : **iOS 16.4+**, ajouter le site à l’**écran d’accueil** depuis Safari, puis autoriser les notifications pour l’app web.
+- Après chaque insert réussi : **cœur** → push partenaire ; **étoile** (si `created_by_profile` renseigné) → push partenaire ; **souvenir** → push partenaire. L’API [`app/api/push/dispatch/route.ts`](app/api/push/dispatch/route.ts) envoie via [`web-push`](https://www.npmjs.com/package/web-push) et les abonnements sont stockés en base ([`supabase/sql/003_web_push.sql`](supabase/sql/003_web_push.sql)).
+- **Sécurité MVP** : `PUSH_GATE_KEY` et `NEXT_PUBLIC_PUSH_GATE_KEY` doivent être identiques ; la clé est exposée au client (acceptable pour une app très privée à deux). Pour ne plus dépendre du navigateur de l’expéditeur, tu peux brancher des **Database Webhooks** Supabase sur `couple_messages`, `constellation_stars`, `memories` qui appellent la même URL `dispatch` avec une vérification de signature côté serveur (sans clé publique dans le bundle).
+
 ## Pret
 
 - Architecture App Router propre
@@ -124,6 +132,4 @@ Si ce fichier n'existe pas encore, l'app affiche un cœur simple en fallback.
 
 ## Placeholder
 
-- Experiences `/memories`, `/us`, `/constellation`
-- Paramètres métier dans `/settings`
-- Notifications système, chat, données couple
+- Paramètres métier complémentaires dans `/settings`

@@ -1,5 +1,6 @@
 import { getSharedDataClient } from "@/lib/shared-data-client";
 import { startSharedSyncPolling } from "@/lib/shared-sync";
+import { requestPushDispatch } from "@/lib/push-dispatch";
 import { isProfileId, type ProfileId } from "@/types/profile";
 import type { Database } from "@/types/supabase";
 
@@ -210,5 +211,6 @@ export async function addMemory({
   const next = readMemories().filter((memory) => memory.id !== optimistic.id);
   next.unshift(saved);
   writeMemories(next);
+  void requestPushDispatch("memory", profile, { title: trimmedTitle });
   return saved;
 }

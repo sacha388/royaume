@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 import { getSupabaseConfig } from "@/lib/env";
 import type { Database } from "@/types/supabase";
 
@@ -23,4 +24,10 @@ export async function createClient() {
       },
     },
   });
+}
+
+/** Client anon pour routes API sans cookies (mêmes RLS que le navigateur). */
+export function createServerSupabaseClient() {
+  const { anonKey, url } = getSupabaseConfig();
+  return createSupabaseJsClient<Database>(url, anonKey);
 }

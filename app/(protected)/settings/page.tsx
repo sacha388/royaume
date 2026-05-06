@@ -4,6 +4,7 @@ import { ScreenHeader } from "@/components/layout/screen-header";
 import { ProfileSessionCard } from "@/components/settings/profile-session-card";
 import { RestartFlowButton } from "@/components/settings/restart-flow-button";
 import { SyncStatusCard } from "@/components/settings/sync-status-card";
+import { WebPushSettingsCard } from "@/components/settings/web-push-settings-card";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 
@@ -13,6 +14,8 @@ export default function SettingsPage() {
       <ScreenHeader backHref="/home" title="Réglages" />
 
       <ProfileSessionCard />
+
+      <WebPushSettingsCard />
 
       <SyncStatusCard />
 

@@ -1,5 +1,6 @@
 import { getSharedDataClient } from "@/lib/shared-data-client";
 import { startSharedSyncPolling } from "@/lib/shared-sync";
+import { requestPushDispatch } from "@/lib/push-dispatch";
 import { isProfileId, type ProfileId } from "@/types/profile";
 import type { Database } from "@/types/supabase";
 
@@ -238,5 +239,8 @@ export async function addConstellationStar({
   const next = readConstellationStars().filter((star) => star.id !== optimistic.id);
   next.push(saved);
   writeConstellationStars(next);
+  if (createdBy && isProfileId(createdBy)) {
+    void requestPushDispatch("star", createdBy);
+  }
   return saved;
 }

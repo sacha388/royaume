@@ -136,6 +136,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      web_push_subscriptions: {
+        Row: {
+          auth: string;
+          endpoint: string;
+          id: string;
+          p256dh: string;
+          profile: string;
+          updated_at: string;
+        };
+        Insert: {
+          auth: string;
+          endpoint: string;
+          id?: string;
+          p256dh: string;
+          profile: string;
+          updated_at?: string;
+        };
+        Update: {
+          auth?: string;
+          endpoint?: string;
+          id?: string;
+          p256dh?: string;
+          profile?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

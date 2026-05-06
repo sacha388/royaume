@@ -1,5 +1,6 @@
 import { getSharedDataClient } from "@/lib/shared-data-client";
 import { startSharedSyncPolling } from "@/lib/shared-sync";
+import { requestPushDispatch } from "@/lib/push-dispatch";
 import { isProfileId, partnerProfileId, type ProfileId } from "@/types/profile";
 import type { Database } from "@/types/supabase";
 
@@ -251,6 +252,7 @@ export async function appendCoupleMessage(
   const all = readAll().filter((item) => item.id !== optimistic.id);
   all.push(saved);
   writeAll(all);
+  void requestPushDispatch("heart", from);
 }
 
 /** Dernier message dont l’expéditeur n’est pas le profil qui consulte. */
